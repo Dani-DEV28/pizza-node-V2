@@ -7,6 +7,9 @@ const app = express();
 //Serve static files from the 'public' directory
 app.use(express.static('public'));
 
+// set the view engine for out application
+app.set('view engine', 'ejs');
+
 //Define a port number for our server to listen on
 const PORT = 3000;
 
@@ -18,7 +21,7 @@ app.get('/', (req, res) => {
 });
 
 //Define a "thank you" route
-app.get('/thankyou', (req, res) => {
+app.post('/thankyou', (req, res) => {
 
     // Send our thank you page
     res.sendFile(`${import.meta.dirname}/views/thankyou.html`);
