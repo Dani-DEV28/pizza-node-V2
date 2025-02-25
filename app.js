@@ -71,12 +71,14 @@ app.post('/thankyou', async (req, res) => {
             lastName,
             email,
             method,
+            toppings,
             size
         ) VALUES (
             '${order.fname}',
             '${order.lname}',
             '${order.email}',
             '${order.method}',
+            '${order.toppings}',
             '${order.size}'
         );
     `);
