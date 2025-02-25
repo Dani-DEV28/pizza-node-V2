@@ -22,6 +22,9 @@ async function connect() {
 //Instantiate an Express application
 const app = express();
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 //Serve static files from the 'public' directory
 app.use(express.static('public'));
 
@@ -49,10 +52,39 @@ app.get('/admin', async (req, res) => {
 });
 
 //Define a "thank you" route
-app.post('/thankyou', (req, res) => {
+app.post('/thankyou', async (req, res) => {
+
+    const order = {
+        fname: req.body.fname,
+        lname: req.body.lname,
+        email: req.body.email,
+        method: req.body.method,
+        toppings: req.body.toppings,
+        size: req.body.size
+    };
+
+    const conn = await connect();
+
+    conn.query(`
+        INSERT INTO orders (
+            firstName,
+            lastName,
+            email,
+            method,
+            size
+        ) VALUES (
+            '${order.fname}',
+            '${order.lname}',
+            '${order.email}',
+            '${order.method}',
+            '${order.size}'
+        );
+    `);
+
+    // console.log(orders);
 
     // Send our thank you page
-    res.sendFile(`${import.meta.dirname}/views/thankyou.html`);
+    res.render('thankyou', { order });
 });
 
 //Tell the server to listen on our specified port
