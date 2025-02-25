@@ -65,7 +65,23 @@ app.post('/thankyou', async (req, res) => {
 
     const conn = await connect();
 
-    conn.query(`
+    const result = validateForm(order);
+    if(!result.isValid){
+        console.log(result.erros);
+        res.send(result.errors);
+        return;
+    }
+
+    if(order.toppings){
+        if(Array.isArray(order.toppings)){
+            order.toppings = order.toppings.join(",");
+        }
+    }else {
+        order.toppings = ""
+    }
+    // order.toppings = order.toppings ? order.toppings.join(",") : "";
+
+    const insertQuery = await conn.query(`
         INSERT INTO orders (
             firstName,
             lastName,
@@ -74,20 +90,60 @@ app.post('/thankyou', async (req, res) => {
             toppings,
             size
         ) VALUES (
-            '${order.fname}',
-            '${order.lname}',
-            '${order.email}',
-            '${order.method}',
-            '${order.toppings}',
-            '${order.size}'
+            ?,?,?,?,?,?)`,
+            
+            [order.fname,
+            order.lname,
+            order.email,
+            order.method,
+            order.toppings,
+            order.size]
         );
-    `);
 
     // console.log(orders);
 
     // Send our thank you page
     res.render('thankyou', { order });
 });
+
+function validateForm(data) {
+    const errors = [ ];
+
+    if(!data.email || data.email.trim() == ""|| data.email.indexOf("@") === -1 || data.email.indexOf(".") === -1){
+        errors.push("Email is required");
+    }
+
+    if(!data.lname || data.lname.trim() == ""){
+        errors.push("Last name is required");
+    }
+
+    if(!data.fname || data.fname.trim() == ""){
+        errors.push("First name is required");
+    }
+
+    if(!data.method){
+        errors.push("Delivery Option Required");
+    } else {
+        const validOptions = ["pickup","delivery"];
+        if(!validOptions.includes(data.method)){
+            errors.push("Buahaha");
+        }
+    }
+
+    if(!data.size || data.size === "none"){
+        errors.push("Size require");
+    } else {
+        const validOptions = ["small","med","large"];
+        if(!validOptions.includes(data.size)){
+            errors.push("Buahaha");
+        }
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    }
+}
 
 //Tell the server to listen on our specified port
 app.listen(PORT, () => {
